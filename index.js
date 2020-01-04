@@ -8,7 +8,7 @@ const players = [];
 const sockets = [];
 
 console.log('Server has started');
-
+console.log('Dekh le bhaiya')
  
 io.on('connection',function(socket) {
     console.log("Connection Made!")
