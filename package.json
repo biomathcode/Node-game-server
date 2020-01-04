@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/pratiksharm/Node-game-server/issues"
   },
-  "homepage": "https://github.com/pratiksharm/Node-game-server#readme"
+  "homepage": "https://github.com/pratiksharm/Node-game-server#readme",
+  "dependencies": {
+    "nodemon": "^2.0.2",
+    "shortid": "^2.2.15",
+    "socket.io": "^2.3.0"
+  }
 }
