@@ -19,24 +19,17 @@ console.log('Dekh le bhaiya')
 //this will call the onUpdate function
 //in the bullet and update the position of the bullet 
 //for 100milliseconds
+//function will be called everymilliseconds
 setInterval(() => {
     bullets.forEach(bullet => {
+        //will call every 100 milliseconds to see if the bullet is there on not
+
         const isDestroyed = bullet.onUpdate()
 
+        //Remove
         if(isDestroyed) {
-            const index = bullets.indexOf(bullet);
-            if(index > -1) {
-                bullet.splice(index, 1);
-
-                const returnData = {
-                    id : bullet.id
-                }
-
-                for(let playerID in players) {
-                    sockets[playerID].emit('serverUnspawn', returnData)
-                }
-
-            }
+            despawnBullet(bullet)
+            
         } else {
             const returnDate = {
                 id: bullet.id,
@@ -48,14 +41,52 @@ setInterval(() => {
             for(let playerID in players) {
                 sockets[playerID].emit('updatePosition', returnData)
             }
+            for(let playerID in players) {
+                let player = player[playerID];
 
+                if(player.isDead) {
+                    let isRespawn = player.respawnCounter();
 
-            
+                    if(isRespawn) {
+                        let returnData = {
+                            id: player.id,
+                            position: {
+                                x: player.position.x,
+                                y: player.position.y
+
+                            }
+                        }
+
+                        sockets[playerID].emit('playerRespawn', returnData);
+                        sockets[playerID].broadcast.emit('playerRespawn', returnData);
+                    }
+                }
+    
+            }
+
         }
+
+        //handle Dead players
+        
     })
 
 }, 100, 0)
- 
+function despawnBullet(bullet = Bullet) {
+    console.log('Destroying bullets (' + bullet.id + ')');
+    const index = bullets.indexOf(bullet);
+    if(index > -1) {
+        bullets.splice(index, 1);
+
+        const returnData = {
+            id : bullet.id
+        }
+        //players are dictionary
+        for(let playerID in players) {
+            sockets[playerID].emit('serverUnspawn', returnData)
+        }
+
+    }
+}
 io.on('connection',function(socket) {
     console.log("Connection Made!")
 
@@ -87,11 +118,12 @@ io.on('connection',function(socket) {
         socket.broadcast.emit('updatePosition', player);
 
     })
-    //first a bullet
-
+    //fires a bullet
+    //
     socket.on('fireBullet', function(data){
         const bullet = new Bullet();
         bullet.name = 'Bullet';
+        bullet.activator = data.activator;
         bullet.position.x = data.position.x;
         bullet.position.y = data.position.y;
         bullet.direction.x = data.direction.x;
@@ -103,6 +135,7 @@ io.on('connection',function(socket) {
         const returnData = {
             name : bullet.name,
             id : bullet.id,
+            activator: bullet.activator,
             position: {
                 x: bullet.position.x,
                 y: bullet.position.y
@@ -114,6 +147,8 @@ io.on('connection',function(socket) {
         }
 
         socket.emit("serverSpawn", returnData )
+        //broadcast goes to everybody exact to us
+        //
         socket.broadcast.emit('serverSpawn', returnData)
     })
 
@@ -126,6 +161,46 @@ io.on('connection',function(socket) {
 
     //utility function 
     //find different instances of time
+    socket.on('collisionDestroy', function(data) {
+        console.log('Collision with bullet id: ' + data.id);
+        let returnBullets = bullets.filter(bullet => {
+            return bullet.id == data.id
+        });
+
+        //we will mostly only have one entry but just in case loop through all and set to destoryed
+        returnBullets.forEach(bullet => {
+            let playerHit = false;
+            //check if we hit someone that is not us
+
+            for(let playerID in players) {
+                if(bullet.activator != playerID) {
+                    let player = players[playerID]
+                    let distance = bullet.position.Distance(player.position);
+
+                    if(distance < 0.65) {
+                        playerHit = true;
+                        let isDead = player.dealDamage(50); //Take half of their health for testing
+                        if(isDead) {
+                            console.log('Player with id' + player.id + ' has died');
+                            let returnData = {
+                                id: player.id
+                            }
+                            sockets[playerID].emit('playerDied', returnData )
+                            sockets[playerID].broadcast.emit('playerDead', returnData)
+                        } else {
+                            console.log('Player with id: ' + player.id + 'has (' + player.health + ') health left.')
+                        }
+                        despawnBullet(bullet);
+                    }
+                }
+            }
+
+            if(!playerHit) {
+                bullet.isDestroyed = true;
+            }
+            
+        })
+    })
     
 
     socket.on('disconnect', function() {
