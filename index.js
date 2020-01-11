@@ -11,7 +11,6 @@ let bullets = [];
 
 
 console.log('Server has started');
-console.log('Dekh le bhaiya')
 
 
 
