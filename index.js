@@ -31,46 +31,44 @@ setInterval(() => {
             despawnBullet(bullet)
             
         } else {
-            const returnDate = {
+            const returnData = {
                 id: bullet.id,
                 position: {
                     x : bullet.position.x,
                     y : bullet.position.y
                 }
             }
-            for(let playerID in players) {
+            
+            for(var playerID in players) {
                 sockets[playerID].emit('updatePosition', returnData)
-            }
-            for(let playerID in players) {
-                let player = player[playerID];
+            }                 
+        }        
+    });
 
-                if(player.isDead) {
-                    let isRespawn = player.respawnCounter();
+    //handle Dead players
+    for(var playerID in players) {
+        let player = players[playerID];
 
-                    if(isRespawn) {
-                        let returnData = {
-                            id: player.id,
-                            position: {
-                                x: player.position.x,
-                                y: player.position.y
+        if(player.isDead) {
+            let isRespawn = player.respawnCounter();
 
-                            }
-                        }
+            if(isRespawn) {
+                let returnData = {
+                    id: player.id,
+                    position: {
+                        x: player.position.x,
+                        y: player.position.y
 
-                        sockets[playerID].emit('playerRespawn', returnData);
-                        sockets[playerID].broadcast.emit('playerRespawn', returnData);
                     }
                 }
-    
+
+                sockets[playerID].emit('playerRespawn', returnData);
+                sockets[playerID].broadcast.emit('playerRespawn', returnData);
             }
-
         }
+    }
+}, 100, 0);
 
-        //handle Dead players
-        
-    })
-
-}, 100, 0)
 function despawnBullet(bullet = Bullet) {
     console.log('Destroying bullets (' + bullet.id + ')');
     const index = bullets.indexOf(bullet);
@@ -112,8 +110,8 @@ io.on('connection',function(socket) {
     }
     //data from the position 
     socket.on('updatePosition', function(data) {
-        players.position.x = data.position.x;
-        players.position.y = data.position.y;
+        player.position.x = data.position.x;
+        player.position.y = data.position.y;
 
         socket.broadcast.emit('updatePosition', player);
 
@@ -172,7 +170,7 @@ io.on('connection',function(socket) {
             let playerHit = false;
             //check if we hit someone that is not us
 
-            for(let playerID in players) {
+            for(var playerID in players) {
                 if(bullet.activator != playerID) {
                     let player = players[playerID]
                     let distance = bullet.position.Distance(player.position);
@@ -186,7 +184,7 @@ io.on('connection',function(socket) {
                                 id: player.id
                             }
                             sockets[playerID].emit('playerDied', returnData )
-                            sockets[playerID].broadcast.emit('playerDead', returnData)
+                            sockets[playerID].broadcast.emit('playerDied', returnData)
                         } else {
                             console.log('Player with id: ' + player.id + 'has (' + player.health + ') health left.')
                         }
