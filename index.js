@@ -1,24 +1,47 @@
-const io = require('socket.io')(process.env.PORT || 52300)
-
+let io = require('socket.io')(process.env.PORT || 52300)
+let Server = require('./Classes/Server')
 //Custom Classes
-
+/*
 const Player = require('./Classes/Player.js');
 const Bullet = require('./Classes/Bullet.js')
-
-let players = [];
-let sockets = [];
-let bullets = [];
-
-
+*/
 console.log('Server has started');
 
+let server = new Server();
 
+setInterval(() => {
+    server.onUpdate();
+}, 100, 0);
+
+io.on("connection", function(socket) {
+    let connection = server.onConnected(socket);
+    connection.createEvents();
+    connection.socket.emit('register', {'id': connection.player.id})
+})
+function interval(func, wait, times){
+    const interv = function(w,t) {
+        return function() {
+            if(typeof t === "undefined" || t-- > 0) {
+                setTimeout(interv, w);
+                try{
+                    func.call(null);
+                } catch(e) {
+                    t = 0;
+                    throw e.toString();
+                }
+            }  
+        }
+    }(wait, times);
+
+    setTimeout(interv, wait);
+}
 
 //updates 
 //this will call the onUpdate function
 //in the bullet and update the position of the bullet 
 //for 100milliseconds
 //function will be called everymilliseconds
+/*
 setInterval(() => {
     bullets.forEach(bullet => {
         //will call every 100 milliseconds to see if the bullet is there on not
@@ -70,22 +93,7 @@ setInterval(() => {
     })
 
 }, 100, 0)
-function despawnBullet(bullet = Bullet) {
-    console.log('Destroying bullets (' + bullet.id + ')');
-    const index = bullets.indexOf(bullet);
-    if(index > -1) {
-        bullets.splice(index, 1);
-
-        const returnData = {
-            id : bullet.id
-        }
-        //players are dictionary
-        for(let playerID in players) {
-            sockets[playerID].emit('serverUnspawn', returnData)
-        }
-
-    }
-}
+ 
 io.on('connection',function(socket) {
     console.log("Connection Made!")
 
@@ -209,22 +217,4 @@ io.on('connection',function(socket) {
         socket.broadcast.emit('disconnected', player);
     })
 
-}) 
-
-function interval(func, wait, times){
-    const interv = function(w,t) {
-        return function() {
-            if(typeof t === "undefined" || t-- > 0) {
-                setTimeout(interv, w);
-                try{
-                    func.call(null);
-                } catch(e) {
-                    t = 0;
-                    throw e.toString();
-                }
-            }  
-        }
-    }(wait, times);
-
-    setTimeout(interv, wait);
-}
+}) */
