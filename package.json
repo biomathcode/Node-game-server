@@ -1,12 +1,8 @@
 {
   "name": "game_server",
   "version": "1.0.0",
-<<<<<<< HEAD
-  "description": "",
+  "description": "Making a game server for unity",
   "main": "index.js",
-=======
-  "main": "server.js",
->>>>>>> 45a48d0af6c493f42066581fdffbc1a891093464
   "scripts": {
     "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
