@@ -30,7 +30,7 @@ module.exports = class Player{
             if(this.respawnTime >= 3 ){
                 console.log('Respawning player id:' + this.id);
                 this.isDead = false;
-                this.respawnTime = new Number(0);
+                this.respawnTicker = new Number(0);
                 this.respawnTime = new Number(0);
                 this.health = new Number(100);
                 this.position = new Vector2(-8, 3); //change this start position
