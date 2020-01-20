@@ -35,7 +35,7 @@ module.exports = class Server {
         let connection = new Connection();
         connection.socket = socket;
         connection.player = new Player();
-        connection.Server = server;
+        connection.server = server;
 
         let player = connection.player;
         let lobbys = server.lobbys;
